@@ -41,6 +41,7 @@ class QuestionConfig:
 class CalculationRules:
     """Configuration for calculation rules"""
     base_service_days: int
+    additional_service_days: int
     minimum_project_days: int
     workflow_multipliers: Dict[str, float]
     integration_complexity: Dict[str, float]

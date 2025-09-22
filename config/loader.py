@@ -123,6 +123,7 @@ class ConfigLoader:
         calc_rules_data = config_data.get('calculation_rules', {})
         calculation_rules = CalculationRules(
             base_service_days=calc_rules_data.get('base_service_days', 9),
+            additional_service_days=calc_rules_data.get('additional_service_days', 5),
             minimum_project_days=calc_rules_data.get('minimum_project_days', 5),
             workflow_multipliers=calc_rules_data.get('workflow_multipliers', {}),
             integration_complexity=calc_rules_data.get('integration_complexity', {}),

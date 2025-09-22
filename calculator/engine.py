@@ -36,6 +36,13 @@ class CalculationEngine:
         base_days = self.rules.base_service_days
         breakdown['Base Service (Phases 0-3)'] = base_days
 
+        # Additional service days per table (after the first one)
+        tables_count = responses.get('tables_count', responses.get('num_workflows', 1))
+        if tables_count > 1:
+            additional_tables = tables_count - 1
+            additional_days = additional_tables * self.rules.additional_service_days
+            breakdown['Additional Tables Service'] = additional_days
+
         # Calculate workflow complexity
         workflow_days = self._calculate_workflow_complexity(responses)
         if workflow_days > 0:
