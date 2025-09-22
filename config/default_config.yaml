@@ -5,7 +5,7 @@
 app_config:
   title: "Data Quality Service Calculator"
   subtitle: "Stratesys Technology Solutions"
-  description: "Calculate estimated working days for your Data Quality implementation"
+  description: "Calculate estimated cost for your Data Quality implementation"
   page_icon: ""
   layout: "wide"
 
