@@ -1,0 +1,313 @@
+# DQ Service Calculator Configuration
+# This file defines all questions and calculation rules for the Data Quality Service Calculator
+
+# Application metadata
+app_config:
+  title: "Data Quality Service Calculator"
+  subtitle: "Stratesys Technology Solutions"
+  description: "Calculate estimated working days for your Data Quality implementation"
+  page_icon: ""
+  layout: "wide"
+
+# User complexity levels
+complexity_levels:
+  advanced:
+    label: "Advanced (All questions)"
+    description: ""
+    show_questions: "all"
+
+# Question definitions
+questions:
+  tables_count:
+    label: "How many tables/views/reports do you want to test?"
+    type: "number_input"
+    min_value: 1
+    max_value: 100
+    default: 1
+    tooltip: "Each table/view/report represents one workstream. A workstream typically includes up to 15-20 quality rules."
+    section: "Project Scope"
+    complexity_level: "advanced"
+
+  workflow_complexity:
+    label: "Workflow complexity"
+    type: "radio"
+    options:
+      - "Simple (single table/report)"
+      - "Complex (multiple tables/joins)"
+    default: "Simple (single table/report)"
+    tooltip: "Simple: single data source, Complex: requires joining multiple tables"
+    section: "Project Scope"
+    complexity_level: "advanced"
+
+  data_sources:
+    label: "Data source integration complexity"
+    type: "selectbox"
+    options:
+      - "Single location (same database/schema)"
+      - "Multiple locations (2-3 sources)"
+      - "Complex integration (4+ sources)"
+    default: "Single location (same database/schema)"
+    tooltip: "More data sources require additional integration work and validation complexity."
+    section: "Data Integration"
+    complexity_level: "advanced"
+
+  data_volume:
+    label: "Data volume per workflow"
+    type: "selectbox"
+    options:
+      - "Small (<1M records)"
+      - "Medium (1-10M records)"
+      - "Large (>10M records)"
+    default: "Small (<1M records)"
+    tooltip: "Larger volumes may require performance optimization"
+    section: "Data Integration"
+    complexity_level: "advanced"
+
+  existing_rules:
+    label: "Do you have existing DQ rules documented?"
+    type: "radio"
+    options:
+      - "Fully documented and validated"
+      - "Partially documented"
+      - "Not documented"
+    default: "Not documented"
+    tooltip: "Existing documented rules significantly reduce setup time and effort."
+    section: "Current State Assessment"
+    complexity_level: "advanced"
+
+  rules_count:
+    label: "How many quality rules do you expect per table?"
+    type: "number_input"
+    min_value: 1
+    max_value: 100
+    default: 15
+    tooltip: "Standard workstreams include up to 15-20 rules. Additional rules require extra time."
+    section: "Current State Assessment"
+    complexity_level: "advanced"
+
+  commercial_tool:
+    label: "Do you have a commercial DQ tool?"
+    type: "radio"
+    options:
+      - "No commercial tool"
+      - "Have existing DQ tool"
+      - "Need tool acquisition"
+    default: "No commercial tool"
+    tooltip: "Commercial tools can accelerate implementation but may require setup time."
+    section: "Current State Assessment"
+    complexity_level: "advanced"
+
+  cloud_platform:
+    label: "Do you use a commercial hyperscaler cloud for data jobs?"
+    type: "selectbox"
+    options:
+      - "Not applicable"
+      - "Microsoft Azure"
+      - "Amazon AWS"
+      - "Google Cloud Platform"
+      - "Multiple clouds"
+    default: "Not applicable"
+    tooltip: "Cloud platforms may offer native DQ capabilities and integration opportunities."
+    section: "Technical Environment"
+    complexity_level: "advanced"
+
+  governance_maturity:
+    label: "Established data governance processes exist"
+    type: "checkbox"
+    default: false
+    tooltip: "Data stewards, clear ownership, and defined processes"
+    section: "Current State Assessment"
+    complexity_level: "advanced"
+
+  datawash_installation:
+    label: "Would you like us to install DataWash in your tenant?"
+    type: "radio"
+    options:
+      - "No, not needed"
+      - "Yes, please provide installation"
+    default: "No, not needed"
+    tooltip: "DataWash is Stratesys' proprietary DQ accelerator tool."
+    section: "Tool Requirements"
+    complexity_level: "advanced"
+
+  datawash_platform:
+    label: "Where would you like DataWash installed? (If applicable)"
+    type: "selectbox"
+    optional: true
+    depends_on: "datawash_installation"
+    depends_value: "Yes, please provide installation"
+    options:
+      - "Microsoft Azure"
+      - "Microsoft Data Factory"
+      - "Snowflake"
+      - "Databricks"
+      - "Other (specify in comments)"
+    default: "Microsoft Azure"
+    tooltip: "DataWash can be deployed on various platforms. Installation takes ~2 weeks with 1 FTE after access is granted."
+    section: "Tool Requirements"
+    complexity_level: "advanced"
+
+  compliance_req:
+    label: "Regulatory/compliance requirements"
+    type: "checkbox"
+    default: false
+    tooltip: "Additional documentation and validation for compliance"
+    section: "Additional Requirements"
+    complexity_level: "advanced"
+
+  historical_analysis:
+    label: "Historical data quality assessment needed"
+    type: "checkbox"
+    default: false
+    tooltip: "Analyze past data quality trends and patterns"
+    section: "Additional Requirements"
+    complexity_level: "advanced"
+
+  system_integration:
+    label: "Integration with existing BI/reporting systems"
+    type: "checkbox"
+    default: false
+    tooltip: "Connect DQ monitoring to current dashboards and reports"
+    section: "Additional Requirements"
+    complexity_level: "advanced"
+
+# Calculation rules
+calculation_rules:
+  base_service_days: 9
+  minimum_project_days: 5
+
+  # Workflow complexity multipliers
+  workflow_multipliers:
+    "Simple (single table/report)": 2.0
+    "Complex (multiple tables/joins)": 4.0
+
+  # Data source integration complexity
+  integration_complexity:
+    "Single location (same database/schema)": 0.0
+    "Multiple locations (2-3 sources)": 2.5
+    "Complex integration (4+ sources)": 4.0
+
+  # Legacy mappings for backward compatibility
+  integration_complexity_legacy:
+    "Single table, single source": 0.0
+    "Multiple tables, single source": 1.5
+    "Multiple sources (2-3)": 2.5
+    "Multiple sources (4+)": 4.0
+
+  # Data volume impact
+  data_volume_multipliers:
+    "Small (<1M records)": 0.0
+    "Medium (1-10M records)": 1.0
+    "Large (>10M records)": 2.0
+
+  # Rules overhead calculation
+  rules_overhead:
+    base_rules_included: 20
+    additional_rules_per_5: 0.5
+
+  # Existing rules impact
+  existing_rules_impact:
+    "Fully documented and validated": 0.0
+    "Partially documented": 3.0
+    "Not documented": 5.0
+
+  # Tool setup days
+  tool_setup:
+    "No commercial tool": 0.0
+    "Have existing DQ tool": 2.0
+    "Need tool acquisition": 3.0
+
+  # DataWash installation
+  datawash_installation:
+    "No, not needed": 0.0
+    "Yes, please provide installation": 15.0  # 3 weeks * 1 FTE
+
+  # Cloud platform integration
+  cloud_integration:
+    "Not applicable": 0.0
+    "Microsoft Azure": 1.0
+    "Amazon AWS": 1.5
+    "Google Cloud Platform": 1.5
+    "Multiple clouds": 2.0
+
+  # Additional requirements
+  additional_requirements:
+    governance_setup: 3.0  # If no governance maturity
+    compliance: 2.0
+    historical_analysis_per_workflow: 2.0
+    system_integration: 3.0
+
+# Pricing configuration
+pricing_config:
+  default_price_per_day: 500.0  # EUR per working day
+  currency: "EUR"
+  currency_symbol: "€"
+  allow_admin_override: true
+  min_price_override: 400.0
+  max_price_override: 5000.0
+
+
+# Export configuration
+export_config:
+  formats:
+    - json
+    - csv
+    - pdf
+  include_metadata: true
+  timestamp_format: "%Y-%m-%d %H:%M:%S"
+
+# UI sections configuration
+ui_sections:
+  - name: "Project Scope"
+    icon: "🎯"
+    description: "Define the scope and complexity of your DQ project"
+
+  - name: "Data Integration"
+    icon: "🔗"
+    description: "Specify data sources and integration complexity"
+
+  - name: "Current State Assessment"
+    icon: "📋"
+    description: "Evaluate existing DQ processes and documentation"
+
+  - name: "Technical Environment"
+    icon: "⚙️"
+    description: "Infrastructure and platform considerations"
+
+  - name: "Tool Requirements"
+    icon: "🛠️"
+    description: "DQ tooling and platform requirements"
+
+  - name: "Additional Requirements"
+    icon: "➕"
+    description: "Special requirements and integrations"
+
+# Methodology phases
+methodology_phases:
+  phase_0:
+    title: "Data Exploration & Standard Rules"
+    description: |
+      - Data source inventory and profiling
+      - Standard DQ rules application (up to 32 rules)
+      - Initial data quality assessment
+
+  phase_1:
+    title: "Data Health Monitoring"
+    description: |
+      - DataWash monitor setup
+      - Continuous quality measurement
+      - Optional PowerBI dashboard
+
+  phase_2:
+    title: "Remediation Planning"
+    description: |
+      - Root cause analysis of quality issues
+      - Corrective action planning
+      - Updated rules and controls definition
+
+  phase_3:
+    title: "Implementation"
+    description: |
+      - Quality improvement implementation
+      - Process training and handover
+      - Final quality reporting

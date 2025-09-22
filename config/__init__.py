@@ -1,0 +1,1 @@
+# Configuration package for DQ Service Calculator
