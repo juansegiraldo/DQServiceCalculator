@@ -36,7 +36,7 @@ app_config:
 # Currently only "advanced" is implemented (shows all questions)
 complexity_levels:
   advanced:
-    title: "🔧 Advanced Mode"                     # Title displayed for advanced mode
+    title: "🧮 Advanced Mode"                     # Title displayed for advanced mode
     label: "Advanced (All questions)"             # Display name for this mode
     description: ""                               # Description text (currently empty)
     show_questions: "all"                         # Which questions to show: "all" or list of question IDs

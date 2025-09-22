@@ -394,10 +394,10 @@ class UIGenerator:
     def render_footer(self) -> None:
         """Render application footer"""
         st.divider()
-        st.markdown(f"""
+        st.markdown("""
         <div style='text-align: center; color: #666; font-size: 14px;'>
-            <p>🏢 <strong>{self.config.app_config.subtitle}</strong> - {self.config.app_config.title}</p>
+            <p> <strong>Stratesys - Data Driven Business</strong></p>
             <p>Based on DataGov Framework by Stratesys</p>
-            <p>For more information, contact your Stratesys representative</p>
+            <p><strong>IMPORTANT NOTE:</strong> This is a rough estimate and is non-binding. For more information, please contact your Stratesys representative.</p>
         </div>
         """, unsafe_allow_html=True)
