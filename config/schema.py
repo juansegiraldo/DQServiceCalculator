@@ -78,11 +78,13 @@ class AppConfig:
     description: str
     page_icon: str
     layout: str
+    sidebar_title: str
 
 
 @dataclass
 class ComplexityLevelConfig:
     """Configuration for complexity levels"""
+    title: str
     label: str
     description: str
     show_questions: Union[List[str], str]
@@ -106,6 +108,24 @@ class ExportConfig:
     timestamp_format: str
 
 @dataclass
+class CompanyInfo:
+    """Company information for reports"""
+    name: str
+    logo_url: str
+    contact_email: str
+
+@dataclass
+class ReportConfig:
+    """Configuration for report generation"""
+    include_executive_summary: bool
+    include_calculation_explanation: bool
+    include_methodology: bool
+    include_risk_assessment: bool
+    include_company_branding: bool
+    default_language: str
+    company_info: CompanyInfo
+
+@dataclass
 class SecurityConfig:
     """Configuration for security features"""
     breakdown_password: str
@@ -113,15 +133,42 @@ class SecurityConfig:
 
 
 @dataclass
+class QuickEstimateDefaults:
+    """Default values for quick estimate mode"""
+    workflow_complexity: str
+    data_sources: str
+    existing_rules: str
+    commercial_tool: str
+    data_volume: str
+    datawash_installation: str
+    compliance_req: bool
+    historical_analysis: bool
+    system_integration: bool
+    governance_maturity: bool
+    rules_count: int
+    cloud_platform: str
+
+
+@dataclass
+class QuickEstimateConfig:
+    """Configuration for Quick Estimate mode"""
+    title: str
+    core_questions: List[str]
+    defaults: QuickEstimateDefaults
+
+
+@dataclass
 class DQCalculatorConfig:
     """Complete configuration for DQ Calculator"""
     app_config: AppConfig
     complexity_levels: Dict[str, ComplexityLevelConfig]
+    quick_estimate_config: QuickEstimateConfig
     questions: Dict[str, QuestionConfig]
     calculation_rules: CalculationRules
     pricing_config: PricingConfig
     security_config: SecurityConfig
     export_config: ExportConfig
+    report_config: ReportConfig
     ui_sections: List[UISection]
     methodology_phases: Dict[str, MethodologyPhase]
 

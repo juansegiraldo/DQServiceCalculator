@@ -1,51 +1,139 @@
-# DQ Service Calculator Configuration
-# This file defines all questions and calculation rules for the Data Quality Service Calculator
+# =============================================================================
+# DQ SERVICE CALCULATOR CONFIGURATION FILE
+# =============================================================================
+# This file controls ALL aspects of the Data Quality Service Calculator:
+# - Questions asked to users
+# - Calculation formulas and multipliers
+# - UI layout and sections
+# - Pricing and export options
+#
+# HOW TO USE THIS FILE:
+# 1. Make changes to any section below
+# 2. Save the file
+# 3. In the Streamlit app, click "Reload Configuration" in the sidebar
+# 4. Changes take effect immediately (no restart needed)
+#
+# IMPORTANT: Always test changes with a few calculations to ensure they work as expected
+# =============================================================================
 
-# Application metadata
+# =============================================================================
+# APPLICATION SETTINGS
+# =============================================================================
+# Controls the basic appearance and branding of the Streamlit app
+# Changes here affect the header, title, and overall app presentation
 app_config:
-  title: "Data Quality Service Calculator"
-  subtitle: "Stratesys Technology Solutions"
-  description: "Calculate estimated cost for your Data Quality implementation"
-  page_icon: ""
-  layout: "wide"
+  title: "Data Quality Service Calculator"        # Main app title (shown in browser tab)
+  subtitle: "Stratesys Technology Solutions"      # Company name (shown under title)
+  description: "Calculate estimated cost for your Data Quality implementation"  # Description text
+  page_icon: ""                                   # Icon for browser tab (empty = no icon)
+  layout: "wide"                                  # Streamlit layout: "wide" or "centered"
+  sidebar_title: "🔧 Options"                     # Sidebar title (shown in left sidebar)
 
-# User complexity levels
+# =============================================================================
+# USER COMPLEXITY LEVELS
+# =============================================================================
+# Defines different modes of operation for the calculator
+# Currently only "advanced" is implemented (shows all questions)
 complexity_levels:
   advanced:
-    label: "Advanced (All questions)"
-    description: ""
-    show_questions: "all"
+    title: "🔧 Advanced Mode"                     # Title displayed for advanced mode
+    label: "Advanced (All questions)"             # Display name for this mode
+    description: ""                               # Description text (currently empty)
+    show_questions: "all"                         # Which questions to show: "all" or list of question IDs
 
-# Question definitions
+# =============================================================================
+# QUICK ESTIMATE MODE CONFIGURATION
+# =============================================================================
+# Configuration for the Quick Estimate mode
+# This mode shows only the first question (tables count) and uses defaults for everything else
+quick_estimate_config:
+  title: "⚡ Quick Estimate Mode"              # Title displayed for quick estimate mode
+  # Core questions shown in quick estimate mode (most impactful on calculation)
+  core_questions:
+    - "tables_count"                              # Number of tables/reports
+    - "workflow_complexity"                       # Workflow complexity (Simple vs Complex)
+    - "rules_count"                               # How many quality rules per table
+    - "data_sources"                              # Data source integration complexity
+  
+  # Default values for quick estimate mode (all other questions use these defaults)
+  defaults:
+    workflow_complexity: "Simple (single table/report)"
+    data_sources: "Single location (same database/schema)"
+    existing_rules: "Not documented"
+    commercial_tool: "No commercial tool"
+    data_volume: "Small (<1M records)"
+    datawash_installation: "No, not needed"
+    compliance_req: false
+    historical_analysis: false
+    system_integration: false
+    governance_maturity: false
+    rules_count: 15
+    cloud_platform: "Not applicable"
+
+# =============================================================================
+# QUESTION DEFINITIONS
+# =============================================================================
+# Each question here creates a form field in the Streamlit app
+# You can add, modify, or remove questions by editing this section
+#
+# QUESTION PROPERTIES:
+# - label: Text shown to user
+# - type: Input type (number_input, selectbox, radio, checkbox)
+# - options: Available choices (for selectbox/radio)
+# - min_value/max_value: Limits for number inputs
+# - default: Default value
+# - tooltip: Help text shown when user hovers
+# - section: Which UI section this appears in
+# - complexity_level: Which complexity level shows this question
+# - optional: true/false - whether question is required
+# - depends_on: Question ID this depends on (for conditional questions)
+# - depends_value: Value that triggers showing this question
 questions:
+  
+  # PROJECT SCOPE QUESTIONS
+  # These questions define the basic scope and complexity of the DQ project
+  
   tables_count:
     label: "How many tables/views/reports do you want to test?"
-    type: "number_input"
-    min_value: 1
-    max_value: 100
-    default: 1
+    type: "number_input"                          # Number input field
+    min_value: 1                                  # Minimum allowed value
+    max_value: 100                                # Maximum allowed value
+    default: 1                                    # Default value shown
     tooltip: "Each table/view/report represents one workstream. A workstream typically includes up to 15-20 quality rules."
-    section: "Project Scope"
-    complexity_level: "advanced"
+    section: "Project Scope"                      # Appears in Project Scope section
+    complexity_level: "advanced"                  # Shown in advanced mode
 
   workflow_complexity:
     label: "Workflow complexity"
-    type: "radio"
+    type: "radio"                                 # Radio button selection
     options:
-      - "Simple (single table/report)"
-      - "Complex (multiple tables/joins)"
-    default: "Simple (single table/report)"
+      - "Simple (single table/report)"            # Option 1
+      - "Complex (multiple tables/joins)"         # Option 2
+    default: "Simple (single table/report)"       # Default selection
     tooltip: "Simple: single data source, Complex: requires joining multiple tables"
     section: "Project Scope"
     complexity_level: "advanced"
 
+  rules_count:
+    label: "How many quality rules do you expect per table?"
+    type: "number_input"
+    min_value: 1
+    max_value: 100
+    default: 15                                   # Standard number of rules per table
+    tooltip: "Standard workstreams include up to 15-20 rules. Additional rules require extra time."
+    section: "Project Scope"
+    complexity_level: "advanced"
+
+  # DATA INTEGRATION QUESTIONS
+  # These questions assess the complexity of data sources and integration
+  
   data_sources:
     label: "Data source integration complexity"
-    type: "selectbox"
+    type: "selectbox"                             # Dropdown selection
     options:
-      - "Single location (same database/schema)"
-      - "Multiple locations (2-3 sources)"
-      - "Complex integration (4+ sources)"
+      - "Single location (same database/schema)"  # Option 1
+      - "Multiple locations (2-3 sources)"        # Option 2
+      - "Complex integration (4+ sources)"        # Option 3
     default: "Single location (same database/schema)"
     tooltip: "More data sources require additional integration work and validation complexity."
     section: "Data Integration"
@@ -55,33 +143,26 @@ questions:
     label: "Data volume per workflow"
     type: "selectbox"
     options:
-      - "Small (<1M records)"
-      - "Medium (1-10M records)"
-      - "Large (>10M records)"
+      - "Small (<1M records)"                     # Option 1
+      - "Medium (1-10M records)"                  # Option 2
+      - "Large (>10M records)"                    # Option 3
     default: "Small (<1M records)"
     tooltip: "Larger volumes may require performance optimization"
     section: "Data Integration"
     complexity_level: "advanced"
 
+  # CURRENT STATE ASSESSMENT QUESTIONS
+  # These questions evaluate existing DQ processes and documentation
+  
   existing_rules:
     label: "Do you have existing DQ rules documented?"
     type: "radio"
     options:
-      - "Fully documented and validated"
-      - "Partially documented"
-      - "Not documented"
+      - "Fully documented and validated"          # Option 1
+      - "Partially documented"                    # Option 2
+      - "Not documented"                          # Option 3
     default: "Not documented"
     tooltip: "Existing documented rules significantly reduce setup time and effort."
-    section: "Current State Assessment"
-    complexity_level: "advanced"
-
-  rules_count:
-    label: "How many quality rules do you expect per table?"
-    type: "number_input"
-    min_value: 1
-    max_value: 100
-    default: 15
-    tooltip: "Standard workstreams include up to 15-20 rules. Additional rules require extra time."
     section: "Current State Assessment"
     complexity_level: "advanced"
 
@@ -89,64 +170,74 @@ questions:
     label: "Do you have a commercial DQ tool?"
     type: "radio"
     options:
-      - "No commercial tool"
-      - "Have existing DQ tool"
-      - "Need tool acquisition"
+      - "No commercial tool"                      # Option 1
+      - "Have existing DQ tool"                   # Option 2
+      - "Need tool acquisition"                   # Option 3
     default: "No commercial tool"
     tooltip: "Commercial tools can accelerate implementation but may require setup time."
     section: "Current State Assessment"
     complexity_level: "advanced"
 
+  governance_maturity:
+    label: "Established data governance processes exist"
+    type: "checkbox"                              # Checkbox (true/false)
+    default: false                                # Default unchecked
+    tooltip: "Data stewards, clear ownership, and defined processes"
+    section: "Current State Assessment"
+    complexity_level: "advanced"
+
+  # TECHNICAL ENVIRONMENT QUESTIONS
+  # These questions assess the technical infrastructure
+  
   cloud_platform:
     label: "Do you use a commercial hyperscaler cloud for data jobs?"
     type: "selectbox"
     options:
-      - "Not applicable"
-      - "Microsoft Azure"
-      - "Amazon AWS"
-      - "Google Cloud Platform"
-      - "Multiple clouds"
+      - "Not applicable"                          # Option 1
+      - "Microsoft Azure"                         # Option 2
+      - "Amazon AWS"                              # Option 3
+      - "Google Cloud Platform"                   # Option 4
+      - "Multiple clouds"                         # Option 5
     default: "Not applicable"
     tooltip: "Cloud platforms may offer native DQ capabilities and integration opportunities."
     section: "Technical Environment"
     complexity_level: "advanced"
 
-  governance_maturity:
-    label: "Established data governance processes exist"
-    type: "checkbox"
-    default: false
-    tooltip: "Data stewards, clear ownership, and defined processes"
-    section: "Current State Assessment"
-    complexity_level: "advanced"
-
+  # TOOL REQUIREMENTS QUESTIONS
+  # These questions assess tooling needs
+  
   datawash_installation:
     label: "Would you like us to install DataWash in your tenant?"
     type: "radio"
     options:
-      - "No, not needed"
-      - "Yes, please provide installation"
+      - "No, not needed"                          # Option 1
+      - "Yes, please provide installation"        # Option 2
     default: "No, not needed"
     tooltip: "DataWash is Stratesys' proprietary DQ accelerator tool."
     section: "Tool Requirements"
     complexity_level: "advanced"
 
+  # CONDITIONAL QUESTION: Only shows if datawash_installation = "Yes, please provide installation"
   datawash_platform:
     label: "Where would you like DataWash installed? (If applicable)"
     type: "selectbox"
-    optional: true
-    depends_on: "datawash_installation"
-    depends_value: "Yes, please provide installation"
+    optional: true                                # This question is optional
+    depends_on: "datawash_installation"           # Depends on datawash_installation question
+    depends_value: "Yes, please provide installation"  # Only show if this value is selected
     options:
-      - "Microsoft Azure"
-      - "Microsoft Data Factory"
-      - "Snowflake"
-      - "Databricks"
-      - "Other (specify in comments)"
+      - "Microsoft Azure"                         # Option 1
+      - "Microsoft Data Factory"                  # Option 2
+      - "Snowflake"                               # Option 3
+      - "Databricks"                              # Option 4
+      - "Other (specify in comments)"             # Option 5
     default: "Microsoft Azure"
     tooltip: "DataWash can be deployed on various platforms. Installation takes ~2 weeks with 1 FTE after access is granted."
     section: "Tool Requirements"
     complexity_level: "advanced"
 
+  # ADDITIONAL REQUIREMENTS QUESTIONS
+  # These questions assess special requirements
+  
   compliance_req:
     label: "Regulatory/compliance requirements"
     type: "checkbox"
@@ -171,97 +262,174 @@ questions:
     section: "Additional Requirements"
     complexity_level: "advanced"
 
-# Calculation rules
+# =============================================================================
+# CALCULATION RULES - THE HEART OF THE CALCULATOR
+# =============================================================================
+# This section defines how the calculator computes working days and costs
+# 
+# HOW CALCULATIONS WORK:
+# 1. Base service days are always included
+# 2. Additional days are added based on user responses
+# 3. Each response maps to a multiplier or fixed number of days
+# 4. Total is calculated by summing all components
+# 5. Minimum project threshold is enforced
+#
+# TO MODIFY CALCULATIONS:
+# - Change numbers to adjust effort estimates
+# - Add new options to existing questions
+# - Add new calculation rules for new questions
+# - Test changes with different scenarios
 calculation_rules:
-  base_service_days: 9
-  additional_service_days: 5  # Additional days per table after the first one
-  minimum_project_days: 5
+  
+  # BASE CALCULATION PARAMETERS
+  # These are the foundation of all calculations
+  base_service_days: 9                            # Base days for any DQ project (Phases 0-3)
+  additional_service_days: 5                      # Extra days per additional table (after first)
+  minimum_project_days: 5                         # Minimum project size (enforced regardless of calculation)
 
-  # Workflow complexity multipliers
+  # WORKFLOW COMPLEXITY MULTIPLIERS
+  # These numbers are multiplied by the number of tables
+  # Higher numbers = more complex = more days required
   workflow_multipliers:
-    "Simple (single table/report)": 2.0
-    "Complex (multiple tables/joins)": 4.0
+    "Simple (single table/report)": 2.0           # 2 days per table for simple workflows
+    "Complex (multiple tables/joins)": 4.0        # 4 days per table for complex workflows
 
-  # Data source integration complexity
+  # DATA SOURCE INTEGRATION COMPLEXITY
+  # These numbers are multiplied by the number of tables
+  # More data sources = more integration work = more days
   integration_complexity:
-    "Single location (same database/schema)": 0.0
-    "Multiple locations (2-3 sources)": 2.5
-    "Complex integration (4+ sources)": 4.0
+    "Single location (same database/schema)": 0.0  # No extra days for single source
+    "Multiple locations (2-3 sources)": 2.5        # 2.5 days per table for multiple sources
+    "Complex integration (4+ sources)": 4.0        # 4 days per table for complex integration
 
-  # Legacy mappings for backward compatibility
+  # LEGACY MAPPINGS (for backward compatibility)
+  # These are kept for compatibility with older question formats
   integration_complexity_legacy:
     "Single table, single source": 0.0
     "Multiple tables, single source": 1.5
     "Multiple sources (2-3)": 2.5
     "Multiple sources (4+)": 4.0
 
-  # Data volume impact
+  # DATA VOLUME IMPACT
+  # These numbers are multiplied by the number of tables
+  # Larger volumes = more processing time = more days
   data_volume_multipliers:
-    "Small (<1M records)": 0.0
-    "Medium (1-10M records)": 1.0
-    "Large (>10M records)": 2.0
+    "Small (<1M records)": 0.0                    # No extra days for small volumes
+    "Medium (1-10M records)": 1.0                 # 1 day per table for medium volumes
+    "Large (>10M records)": 2.0                   # 2 days per table for large volumes
 
-  # Rules overhead calculation
+  # RULES OVERHEAD CALCULATION
+  # This handles extra effort for additional quality rules beyond the standard set
   rules_overhead:
-    base_rules_included: 20
-    additional_rules_per_5: 0.5
+    base_rules_included: 15                       # Standard number of rules included in base calculation
+    additional_rules_per_5: 1                   # Extra days for every 5 additional rules
 
-  # Existing rules impact
+  # EXISTING RULES IMPACT
+  # These are fixed days added based on documentation status
+  # Better documentation = less setup work = fewer days
   existing_rules_impact:
-    "Fully documented and validated": 0.0
-    "Partially documented": 3.0
-    "Not documented": 5.0
+    "Fully documented and validated": 1.0         # 1 extra days if rules are well documented
+    "Partially documented": 3.0                   # 3 extra days for partial documentation
+    "Not documented": 5.0                         # 5 extra days if no documentation exists
 
-  # Tool setup days
+  # TOOL SETUP DAYS
+  # These are fixed days added based on tool availability
+  # Having tools = less setup = fewer days
   tool_setup:
-    "No commercial tool": 0.0
-    "Have existing DQ tool": 2.0
-    "Need tool acquisition": 3.0
+    "No commercial tool": 0.0                     # No extra days if no tool needed
+    "Have existing DQ tool": 2.0                  # 2 extra days for existing tool setup
+    "Need tool acquisition": 10.0                  # 10 extra days for tool acquisition
 
-  # DataWash installation
+  # DATAWASH INSTALLATION
+  # These are fixed days for DataWash installation
+  # Installation is a significant effort = many days
   datawash_installation:
-    "No, not needed": 0.0
-    "Yes, please provide installation": 15.0  # 3 weeks * 1 FTE
+    "No, not needed": 0.0                         # No extra days if not needed
+    "Yes, please provide installation": 15.0      # 15 days for DataWash installation (3 weeks * 1 FTE)
 
-  # Cloud platform integration
+  # CLOUD PLATFORM INTEGRATION
+  # These are fixed days for cloud platform integration
+  # Different platforms have different complexity levels
   cloud_integration:
-    "Not applicable": 0.0
-    "Microsoft Azure": 1.0
-    "Amazon AWS": 1.5
-    "Google Cloud Platform": 1.5
-    "Multiple clouds": 2.0
+    "Not applicable": 0.0                         # No extra days if not applicable
+    "Microsoft Azure": 1.0                        # 1 day for Azure integration
+    "Amazon AWS": 1.5                             # 1.5 days for AWS integration
+    "Google Cloud Platform": 1.5                  # 1.5 days for GCP integration
+    "Multiple clouds": 2.0                        # 2 days for multiple cloud integration
 
-  # Additional requirements
+  # ADDITIONAL REQUIREMENTS
+  # These are fixed days for special requirements
+  # Each requirement adds specific effort
   additional_requirements:
-    governance_setup: 3.0  # If no governance maturity
-    compliance: 2.0
-    historical_analysis_per_workflow: 2.0
-    system_integration: 3.0
+    governance_setup: 3.0                         # 3 days if no governance maturity exists
+    compliance: 2.0                               # 2 days for compliance requirements
+    historical_analysis_per_workflow: 2.0         # 2 days per workflow for historical analysis
+    system_integration: 3.0                       # 3 days for system integration
 
-# Pricing configuration
+# =============================================================================
+# PRICING CONFIGURATION
+# =============================================================================
+# Controls the daily rate and pricing options
+# Changes here affect the cost calculations shown to users
 pricing_config:
-  default_price_per_day: 500.0  # EUR per working day
-  currency: "EUR"
-  currency_symbol: "€"
-  allow_admin_override: true
-  min_price_override: 400.0
-  max_price_override: 5000.0
+  default_price_per_day: 500.0                   # Default daily rate in EUR
+  currency: "EUR"                                 # Currency code
+  currency_symbol: "€"                            # Currency symbol for display
+  allow_admin_override: true                      # Whether admins can override the daily rate
+  min_price_override: 400.0                       # Minimum allowed override rate
+  max_price_override: 5000.0                      # Maximum allowed override rate
 
-
-# Export configuration
+# =============================================================================
+# EXPORT CONFIGURATION
+# =============================================================================
+# Controls what export formats are available and how they work
+# Changes here affect the export functionality in the app
 export_config:
   formats:
-    - json
-    - csv
-    - pdf
-  include_metadata: true
-  timestamp_format: "%Y-%m-%d %H:%M:%S"
+    - json                                        # JSON export format
+    - csv                                         # CSV export format
+    - pdf                                         # PDF export format
+    - excel                                       # Excel export format
+    - txt                                         # Text export format
+  include_metadata: true                          # Whether to include metadata in exports
+  timestamp_format: "%Y-%m-%d %H:%M:%S"          # Format for timestamps in exports
 
-# UI sections configuration
+# =============================================================================
+# REPORT CONFIGURATION
+# =============================================================================
+# Controls the report generation and download functionality
+# Changes here affect the report generation features
+report_config:
+  include_executive_summary: true                 # Include executive summary in reports
+  include_calculation_explanation: true           # Include detailed calculation explanations
+  include_methodology: true                       # Include methodology section
+  include_risk_assessment: true                   # Include risk assessment
+  include_company_branding: true                  # Include Stratesys branding
+  default_language: "es"                          # Default language for reports ("es" or "en")
+  company_info:
+    name: "Stratesys Technology Solutions"        # Company name for reports
+    logo_url: ""                                  # Company logo URL (optional)
+    contact_email: "info@stratesys.com"           # Contact email for reports
+
+# =============================================================================
+# SECURITY CONFIGURATION
+# =============================================================================
+# Controls security features for the application
+# Changes here affect password requirements and access control
+security_config:
+  breakdown_password: "stratesys2024"             # Password for detailed breakdown access
+  password_required: true                          # Whether password is required for breakdown
+
+# =============================================================================
+# UI SECTIONS CONFIGURATION
+# =============================================================================
+# Defines the sections shown in the Streamlit app
+# Each section groups related questions together
+# You can add, modify, or remove sections here
 ui_sections:
-  - name: "Project Scope"
-    icon: "🎯"
-    description: "Define the scope and complexity of your DQ project"
+  - name: "Project Scope"                         # Section name
+    icon: "🎯"                                    # Icon shown next to section name
+    description: "Define the scope and complexity of your DQ project"  # Description text
 
   - name: "Data Integration"
     icon: "🔗"
@@ -283,7 +451,12 @@ ui_sections:
     icon: "➕"
     description: "Special requirements and integrations"
 
-# Methodology phases
+# =============================================================================
+# METHODOLOGY PHASES
+# =============================================================================
+# Defines the Stratesys DQ methodology phases
+# These are shown in the app to explain the approach
+# Changes here affect the methodology explanation shown to users
 methodology_phases:
   phase_0:
     title: "Data Exploration & Standard Rules"
@@ -312,3 +485,34 @@ methodology_phases:
       - Quality improvement implementation
       - Process training and handover
       - Final quality reporting
+
+# =============================================================================
+# COMMON MODIFICATION SCENARIOS
+# =============================================================================
+#
+# TO ADD A NEW QUESTION:
+# 1. Add a new entry under "questions:" with all required properties
+# 2. Add corresponding calculation rules under "calculation_rules:"
+# 3. Test the new question with different values
+#
+# TO MODIFY CALCULATION FORMULAS:
+# 1. Change the numbers in "calculation_rules:" section
+# 2. Test with different scenarios to ensure results make sense
+# 3. Consider the impact on existing estimates
+#
+# TO ADD A NEW SECTION:
+# 1. Add a new entry under "ui_sections:"
+# 2. Assign questions to the new section by changing their "section:" property
+# 3. Test the new section layout
+#
+# TO CHANGE PRICING:
+# 1. Modify "default_price_per_day" in "pricing_config:"
+# 2. Adjust "min_price_override" and "max_price_override" if needed
+# 3. Test cost calculations with different scenarios
+#
+# TO ADD NEW EXPORT FORMATS:
+# 1. Add new format to "formats:" list in "export_config:"
+# 2. Implement the export logic in the application code
+# 3. Test the new export functionality
+#
+# =============================================================================

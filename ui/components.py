@@ -392,17 +392,18 @@ class CustomComponents:
         """, unsafe_allow_html=True)
 
     @staticmethod
-    def quick_estimate_mode(questions: Dict[str, Any]) -> Dict[str, Any]:
+    def quick_estimate_mode(questions: Dict[str, Any], title: str = "⚡ Quick Estimate Mode") -> Dict[str, Any]:
         """
         Render a quick estimate mode with minimal questions
 
         Args:
             questions: Available questions configuration
+            title: Title to display for the quick estimate mode
 
         Returns:
             Quick estimate responses
         """
-        st.subheader("⚡ Quick Estimate Mode")
+        st.subheader(title)
         st.info("Get a rapid estimate with just 3 essential questions")
 
         responses = {}

@@ -30,8 +30,7 @@ class UIGenerator:
             Selected complexity level (always 'advanced')
         """
         # Since we only have 'advanced' level now, we don't need to show the selector
-        # Just show the header for the advanced level
-        st.subheader("Advanced Calculator")
+        # Just return the advanced level without showing any header
 
         return 'advanced'
 
@@ -78,9 +77,9 @@ class UIGenerator:
 
             # Submit button
             submitted = st.form_submit_button(
-                "🧮 Calculate Estimated Costs",
+                "🧠 Calculate",
                 type="primary",
-                use_container_width=True
+                use_container_width=False
             )
 
         return responses if submitted else {}

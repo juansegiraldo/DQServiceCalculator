@@ -6,6 +6,7 @@ import streamlit as st
 import sys
 import os
 from pathlib import Path
+from datetime import datetime
 
 # Add current directory to Python path for imports
 current_dir = Path(__file__).parent
@@ -18,6 +19,7 @@ try:
     from calculator.breakdown import BreakdownGenerator
     from ui.generator import UIGenerator
     from ui.components import CustomComponents
+    from reports.generator import ReportGenerator
 except ImportError as e:
     st.error(f"Import error: {e}")
     st.error("Please ensure all required files are in the correct directory structure")
@@ -34,6 +36,7 @@ class DQServiceCalculatorApp:
         self.calculation_engine = None
         self.breakdown_generator = None
         self.ui_generator = None
+        self.report_generator = None
         self.custom_components = CustomComponents()
 
         # Initialize session state
@@ -71,6 +74,7 @@ class DQServiceCalculatorApp:
             self.calculation_engine = CalculationEngine(self.config)
             self.breakdown_generator = BreakdownGenerator(self.config)
             self.ui_generator = UIGenerator(self.config, self.config_loader)
+            self.report_generator = ReportGenerator(self.config)
 
             # Always update price_per_day from configuration
             st.session_state.price_per_day = self.config.pricing_config.default_price_per_day
@@ -162,6 +166,9 @@ class DQServiceCalculatorApp:
 
         # Results metrics
         self.ui_generator.render_results_section(total_days, breakdown, price_per_day)
+        
+        # Report download section
+        self.render_report_download_section(responses, total_days, breakdown, price_per_day)
 
 
     def _calculate_confidence(self, responses: dict, total_days: int) -> float:
@@ -193,78 +200,239 @@ class DQServiceCalculatorApp:
 
         return min(max(confidence, 0.0), 1.0)
 
+    def render_report_download_section(self, responses: dict, total_days: int, 
+                                     breakdown: dict, price_per_day: float):
+        """
+        Render report download section
 
+        Args:
+            responses: User responses
+            total_days: Total calculated days
+            breakdown: Cost breakdown
+            price_per_day: Daily rate
+        """
+        st.divider()
+        st.subheader("📊 Descargar Reporte Ejecutivo")
+        st.markdown("Descarga un reporte detallado que explica la lógica detrás de los cálculos para presentar a tu jefe.")
+        
+        # Get available formats
+        available_formats = self.report_generator.get_available_formats()
+        
+        # Create columns for download buttons
+        cols = st.columns(len(available_formats))
+        
+        for i, format_type in enumerate(available_formats):
+            with cols[i]:
+                if format_type == 'pdf':
+                    if st.button(f"📄 Descargar PDF", key=f"download_{format_type}", 
+                               help="Reporte completo en formato PDF"):
+                        try:
+                            pdf_content = self.report_generator.generate_pdf_report(
+                                responses, total_days, breakdown, price_per_day
+                            )
+                            st.download_button(
+                                label="💾 Descargar PDF",
+                                data=pdf_content,
+                                file_name=f"dq_estimation_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+                                mime="application/pdf",
+                                key=f"download_btn_{format_type}"
+                            )
+                        except Exception as e:
+                            st.error(f"Error generando PDF: {str(e)}")
+                
+                elif format_type == 'excel':
+                    if st.button(f"📊 Descargar Excel", key=f"download_{format_type}",
+                               help="Reporte completo en formato Excel con múltiples hojas"):
+                        try:
+                            excel_content = self.report_generator.generate_excel_report(
+                                responses, total_days, breakdown, price_per_day
+                            )
+                            st.download_button(
+                                label="💾 Descargar Excel",
+                                data=excel_content,
+                                file_name=f"dq_estimation_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
+                                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                key=f"download_btn_{format_type}"
+                            )
+                        except Exception as e:
+                            st.error(f"Error generando Excel: {str(e)}")
+                
+                elif format_type == 'json':
+                    if st.button(f"📋 Descargar JSON", key=f"download_{format_type}",
+                               help="Datos estructurados en formato JSON"):
+                        try:
+                            json_content = self.breakdown_generator.generate_json_export(
+                                responses, total_days, breakdown
+                            )
+                            st.download_button(
+                                label="💾 Descargar JSON",
+                                data=json_content,
+                                file_name=f"dq_estimation_data_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+                                mime="application/json",
+                                key=f"download_btn_{format_type}"
+                            )
+                        except Exception as e:
+                            st.error(f"Error generando JSON: {str(e)}")
+                
+                elif format_type == 'csv':
+                    if st.button(f"📈 Descargar CSV", key=f"download_{format_type}",
+                               help="Desglose de costos en formato CSV"):
+                        try:
+                            csv_content = self.breakdown_generator.generate_csv_breakdown(
+                                breakdown, total_days
+                            )
+                            st.download_button(
+                                label="💾 Descargar CSV",
+                                data=csv_content,
+                                file_name=f"dq_breakdown_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                                mime="text/csv",
+                                key=f"download_btn_{format_type}"
+                            )
+                        except Exception as e:
+                            st.error(f"Error generando CSV: {str(e)}")
+                
+                elif format_type == 'txt':
+                    if st.button(f"📝 Descargar Texto", key=f"download_{format_type}",
+                               help="Reporte en formato de texto plano"):
+                        try:
+                            txt_content = self.breakdown_generator.generate_summary_report(
+                                responses, total_days, breakdown, price_per_day
+                            )
+                            st.download_button(
+                                label="💾 Descargar TXT",
+                                data=txt_content,
+                                file_name=f"dq_summary_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
+                                mime="text/plain",
+                                key=f"download_btn_{format_type}"
+                            )
+                        except Exception as e:
+                            st.error(f"Error generando TXT: {str(e)}")
+        
+        # Show report preview
+        with st.expander("👁️ Vista Previa del Reporte"):
+            st.markdown("### Resumen Ejecutivo")
+            exec_summary = self.report_generator.generate_executive_summary(
+                responses, total_days, breakdown, price_per_day
+            )
+            st.markdown(exec_summary)
+            
+            st.markdown("### Explicación de Cálculos")
+            calc_explanation = self.report_generator.generate_detailed_calculation_explanation(
+                responses, breakdown
+            )
+            st.markdown(calc_explanation)
 
     def render_quick_estimate_mode(self):
-        """Render quick estimate mode"""
-        st.subheader("⚡ Quick Estimate Mode")
-        st.info("Get a rapid estimate with just the essential questions")
+        """Render quick estimate mode - shows core questions that most impact calculation"""
+        st.subheader(self.config.quick_estimate_config.title)
 
         with st.form("quick_estimate_form"):
-            col1, col2, col3 = st.columns(3)
-
+            # Show core questions that most impact the calculation
+            # First row: tables_count and workflow_complexity
+            col1, col2 = st.columns(2)
+            
             with col1:
-                tables_count = st.number_input(
-                    "Number of tables/reports",
-                    min_value=1,
-                    max_value=20,
-                    value=1,
-                    help="How many data sources to analyze"
-                )
-
+                # Tables count question
+                tables_config = self.config.questions.get('tables_count')
+                if tables_config:
+                    tables_count = st.number_input(
+                        tables_config.label,
+                        min_value=tables_config.min_value or 1,
+                        max_value=tables_config.max_value or 100,
+                        value=tables_config.default or 1,
+                        help=tables_config.tooltip
+                    )
+                else:
+                    tables_count = st.number_input(
+                        "Number of tables/reports",
+                        min_value=1,
+                        max_value=100,
+                        value=1,
+                        help="How many data sources to analyze"
+                    )
+            
             with col2:
-                complexity = st.selectbox(
-                    "Project complexity",
-                    ["Simple", "Moderate", "Complex"],
-                    help="Overall project complexity level"
-                )
-
+                # Workflow complexity question
+                workflow_config = self.config.questions.get('workflow_complexity')
+                if workflow_config:
+                    workflow_complexity = st.radio(
+                        workflow_config.label,
+                        workflow_config.options,
+                        help=workflow_config.tooltip
+                    )
+                else:
+                    workflow_complexity = st.radio(
+                        "Workflow complexity",
+                        ["Simple (single table/report)", "Complex (multiple tables/joins)"],
+                        help="Simple: single data source, Complex: requires joining multiple tables"
+                    )
+            
+            # Second row: rules_count and data_sources
+            col3, col4 = st.columns(2)
+            
             with col3:
-                existing_rules = st.selectbox(
-                    "Existing DQ rules",
-                    ["None", "Some", "Complete"],
-                    help="Current state of data quality documentation"
-                )
+                # Rules count question
+                rules_config = self.config.questions.get('rules_count')
+                if rules_config:
+                    rules_count = st.number_input(
+                        rules_config.label,
+                        min_value=rules_config.min_value or 1,
+                        max_value=rules_config.max_value or 100,
+                        value=rules_config.default or 15,
+                        help=rules_config.tooltip
+                    )
+                else:
+                    rules_count = st.number_input(
+                        "How many quality rules do you expect per table?",
+                        min_value=1,
+                        max_value=100,
+                        value=15,
+                        help="Standard workstreams include up to 15-20 rules. Additional rules require extra time."
+                    )
+            
+            with col4:
+                # Data sources question
+                data_sources_config = self.config.questions.get('data_sources')
+                if data_sources_config:
+                    data_sources = st.selectbox(
+                        data_sources_config.label,
+                        data_sources_config.options,
+                        help=data_sources_config.tooltip
+                    )
+                else:
+                    data_sources = st.selectbox(
+                        "Data source integration complexity",
+                        ["Single location (same database/schema)", "Multiple locations (2-3 sources)", "Complex integration (4+ sources)"],
+                        help="More data sources require additional integration work"
+                    )
 
-            submitted = st.form_submit_button("🧮 Quick Calculate", type="primary")
+            submitted = st.form_submit_button("🧠 Calculate", type="primary", use_container_width=False)
 
         # Process submission outside the form to avoid rerun issues
         if submitted:
             try:
-                # Map quick responses to full responses
-                if complexity == 'Simple':
-                    workflow_complexity = 'Simple (single table/report)'
-                    data_sources = 'Single location (same database/schema)'
-                    governance_maturity = False
-                elif complexity == 'Moderate':
-                    workflow_complexity = 'Simple (single table/report)'
-                    data_sources = 'Multiple locations (2-3 sources)'
-                    governance_maturity = False
-                else:  # Complex
-                    workflow_complexity = 'Complex (multiple tables/joins)'
-                    data_sources = 'Complex integration (4+ sources)'
-                    governance_maturity = True
-
+                # Use Quick Estimate configuration defaults
+                quick_config = self.config.quick_estimate_config
+                
+                # Create responses using user selections for core questions and defaults for everything else
                 quick_responses = {
                     'tables_count': tables_count,
-                    'workflow_complexity': workflow_complexity,
-                    'data_sources': data_sources,
-                    'existing_rules': {
-                        'None': 'Not documented',
-                        'Some': 'Partially documented',
-                        'Complete': 'Fully documented and validated'
-                    }[existing_rules],
-                    'commercial_tool': 'No commercial tool',
-                    'governance_maturity': governance_maturity,
-                    # Add all required fields with sensible defaults for quick estimate
-                    'data_volume': 'Small (<1M records)',  # Default to small for quick estimate
-                    'datawash_installation': 'No, not needed',  # Default to no installation
-                    'compliance_req': False,  # Default to no compliance requirements
-                    'historical_analysis': False,  # Default to no historical analysis
-                    'system_integration': False  # Default to no system integration
+                    'workflow_complexity': workflow_complexity,  # User selection
+                    'rules_count': rules_count,  # User selection
+                    'data_sources': data_sources,  # User selection
+                    'existing_rules': quick_config.defaults.existing_rules,
+                    'commercial_tool': quick_config.defaults.commercial_tool,
+                    'governance_maturity': quick_config.defaults.governance_maturity,
+                    'data_volume': quick_config.defaults.data_volume,
+                    'datawash_installation': quick_config.defaults.datawash_installation,
+                    'compliance_req': quick_config.defaults.compliance_req,
+                    'historical_analysis': quick_config.defaults.historical_analysis,
+                    'system_integration': quick_config.defaults.system_integration,
+                    'cloud_platform': quick_config.defaults.cloud_platform
                 }
 
-                total_days, breakdown, errors = self.calculate_results(quick_responses, is_quick_estimate=True)
+                # Use the same calculation engine as advanced mode
+                total_days, breakdown, errors = self.calculate_results(quick_responses, is_quick_estimate=False)
 
                 if errors:
                     st.error("Validation errors:")
@@ -277,7 +445,6 @@ class DQServiceCalculatorApp:
                     st.session_state.responses = quick_responses
 
                     # Show quick results
-                    st.success("Calculation completed!")
                     
                     # Show central KPI
                     from ui.components import CustomComponents
@@ -287,7 +454,9 @@ class DQServiceCalculatorApp:
                         label="Total Estimated Cost",
                         icon="💰"
                     )
-
+                    
+                    # Show report download section for quick estimate
+                    self.render_report_download_section(quick_responses, total_days, breakdown, st.session_state.price_per_day)
 
             except Exception as e:
                 st.error(f"An error occurred: {str(e)}")
@@ -295,25 +464,25 @@ class DQServiceCalculatorApp:
 
     def render_sidebar_features(self):
         """Render sidebar with additional features"""
-        st.sidebar.title("🔧 Options")
+       
 
         # Mode selector
         mode = st.sidebar.radio(
-            "Calculator Mode",
-            ["Quick Estimate", "Full Calculator"],
-            help="Choose between quick or detailed calculation"
+            "Calculator mode",
+            ["Quick", "Advanced"],
+            help='Choose between quick or detailed calculation'
         )
 
         # Configuration reload button
-        st.sidebar.divider()
-        st.sidebar.subheader("⚙️ Configuration")
+        # st.sidebar.divider()
+        # st.sidebar.subheader("⚙️ Configuration")
         
-        if st.sidebar.button("🔄 Reload Configuration", help="Reload configuration from file"):
-            if self.load_configuration(reload=True):
-                st.sidebar.success("Configuration reloaded successfully!")
-                st.rerun()
-            else:
-                st.sidebar.error("Failed to reload configuration")
+        # if st.sidebar.button("🔄 Reload Configuration", help="Reload configuration from file"):
+        #     if self.load_configuration(reload=True):
+        #         st.sidebar.success("Configuration reloaded successfully!")
+        #         st.rerun()
+        #     else:
+        #         st.sidebar.error("Failed to reload configuration")
 
         # Help section
         with st.sidebar.expander("❓ Help & Information"):
@@ -341,13 +510,18 @@ class DQServiceCalculatorApp:
         # Render sidebar
         mode = self.render_sidebar_features()
 
-        if mode == "Quick Estimate":
+        if mode == "Quick":
             # Quick estimate mode (now default)
             self.render_quick_estimate_mode()
         else:
-            # Full calculator mode - now only shows advanced level
+            # Advanced calculator mode - now only shows advanced level
             # Show advanced calculator header
             complexity_level = self.render_complexity_selector()
+            
+            # Display advanced mode title
+            advanced_config = self.config.complexity_levels.get(complexity_level)
+            if advanced_config:
+                st.subheader(advanced_config.title)
 
             # Main form
             responses = self.render_main_form(complexity_level)

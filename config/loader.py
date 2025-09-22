@@ -9,7 +9,8 @@ from pathlib import Path
 
 from .schema import (
     DQCalculatorConfig, AppConfig, ComplexityLevelConfig, QuestionConfig,
-    CalculationRules, PricingConfig, SecurityConfig, ExportConfig, UISection, MethodologyPhase,
+    CalculationRules, PricingConfig, SecurityConfig, ExportConfig, ReportConfig, CompanyInfo,
+    UISection, MethodologyPhase, QuickEstimateConfig, QuickEstimateDefaults,
     validate_config
 )
 
@@ -89,17 +90,42 @@ class ConfigLoader:
             subtitle=app_config_data.get('subtitle', 'Stratesys Technology Solutions'),
             description=app_config_data.get('description', ''),
             page_icon=app_config_data.get('page_icon', '📊'),
-            layout=app_config_data.get('layout', 'wide')
+            layout=app_config_data.get('layout', 'wide'),
+            sidebar_title=app_config_data.get('sidebar_title', '🔧 Options')
         )
 
         # Parse complexity levels
         complexity_levels = {}
         for level_id, level_data in config_data.get('complexity_levels', {}).items():
             complexity_levels[level_id] = ComplexityLevelConfig(
+                title=level_data.get('title', level_data.get('label', '')),
                 label=level_data.get('label', ''),
                 description=level_data.get('description', ''),
                 show_questions=level_data.get('show_questions', [])
             )
+
+        # Parse quick estimate config
+        quick_estimate_data = config_data.get('quick_estimate_config', {})
+        defaults_data = quick_estimate_data.get('defaults', {})
+        
+        quick_estimate_config = QuickEstimateConfig(
+            title=quick_estimate_data.get('title', '⚡ Quick Estimate Mode'),
+            core_questions=quick_estimate_data.get('core_questions', ['tables_count']),
+            defaults=QuickEstimateDefaults(
+                workflow_complexity=defaults_data.get('workflow_complexity', 'Simple (single table/report)'),
+                data_sources=defaults_data.get('data_sources', 'Single location (same database/schema)'),
+                existing_rules=defaults_data.get('existing_rules', 'Not documented'),
+                commercial_tool=defaults_data.get('commercial_tool', 'No commercial tool'),
+                data_volume=defaults_data.get('data_volume', 'Small (<1M records)'),
+                datawash_installation=defaults_data.get('datawash_installation', 'No, not needed'),
+                compliance_req=defaults_data.get('compliance_req', False),
+                historical_analysis=defaults_data.get('historical_analysis', False),
+                system_integration=defaults_data.get('system_integration', False),
+                governance_maturity=defaults_data.get('governance_maturity', False),
+                rules_count=defaults_data.get('rules_count', 15),
+                cloud_platform=defaults_data.get('cloud_platform', 'Not applicable')
+            )
+        )
 
         # Parse questions
         questions = {}
@@ -163,6 +189,24 @@ class ConfigLoader:
             timestamp_format=export_config_data.get('timestamp_format', '%Y-%m-%d %H:%M:%S')
         )
 
+        # Parse report config
+        report_config_data = config_data.get('report_config', {})
+        company_info_data = report_config_data.get('company_info', {})
+        company_info = CompanyInfo(
+            name=company_info_data.get('name', 'Stratesys Technology Solutions'),
+            logo_url=company_info_data.get('logo_url', ''),
+            contact_email=company_info_data.get('contact_email', 'info@stratesys.com')
+        )
+        report_config = ReportConfig(
+            include_executive_summary=report_config_data.get('include_executive_summary', True),
+            include_calculation_explanation=report_config_data.get('include_calculation_explanation', True),
+            include_methodology=report_config_data.get('include_methodology', True),
+            include_risk_assessment=report_config_data.get('include_risk_assessment', True),
+            include_company_branding=report_config_data.get('include_company_branding', True),
+            default_language=report_config_data.get('default_language', 'es'),
+            company_info=company_info
+        )
+
         # Parse UI sections
         ui_sections = []
         for section_data in config_data.get('ui_sections', []):
@@ -183,11 +227,13 @@ class ConfigLoader:
         return DQCalculatorConfig(
             app_config=app_config,
             complexity_levels=complexity_levels,
+            quick_estimate_config=quick_estimate_config,
             questions=questions,
             calculation_rules=calculation_rules,
             pricing_config=pricing_config,
             security_config=security_config,
             export_config=export_config,
+            report_config=report_config,
             ui_sections=ui_sections,
             methodology_phases=methodology_phases
         )
