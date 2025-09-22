@@ -78,7 +78,7 @@ class UIGenerator:
 
             # Submit button
             submitted = st.form_submit_button(
-                "🧮 Calculate Estimated Working Days",
+                "🧮 Calculate Estimated Costs",
                 type="primary",
                 use_container_width=True
             )
